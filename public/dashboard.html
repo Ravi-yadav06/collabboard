@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard - CollabBoard</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+  <div class="dashboard-wrapper">
+    <!-- Navbar -->
+    <nav class="dash-nav">
+      <a href="/" class="logo-brand">
+        <i class="fa-solid fa-pen-ruler"></i> CollabBoard
+      </a>
+      <div class="user-profile-badge">
+        <div id="user-avatar" class="avatar-circle">U</div>
+        <span id="user-name" style="font-weight: 500;">User</span>
+        <button id="btn-logout" class="btn btn-secondary btn-icon" title="Logout" style="margin-left: 12px;">
+          <i class="fa-solid fa-right-from-bracket"></i>
+        </button>
+      </div>
+    </nav>
+
+    <!-- Main Dashboard Content -->
+    <main class="dash-content">
+      <div class="dash-actions-bar">
+        <div>
+          <h1 style="font-size: 1.8rem; font-weight: 700; margin-bottom: 4px;">My Whiteboards</h1>
+          <p style="color: var(--text-secondary); font-size: 0.9rem;">Create a new board or join an existing session with Room ID</p>
+        </div>
+
+        <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+          <!-- Join Room Form -->
+          <form id="join-room-form" style="display: flex; gap: 8px;">
+            <input type="text" id="join-room-input" class="form-control" placeholder="Enter Room ID (e.g. board-a1b2)" style="width: 220px;" required>
+            <button type="submit" class="btn btn-secondary">
+              <i class="fa-solid fa-arrow-right-to-bracket"></i> Join
+            </button>
+          </form>
+
+          <button id="btn-open-create-modal" class="btn btn-primary">
+            <i class="fa-solid fa-plus"></i> New Whiteboard
+          </button>
+        </div>
+      </div>
+
+      <!-- Boards List Grid -->
+      <div id="rooms-grid" class="rooms-grid">
+        <!-- Dynamically filled by dashboard.js -->
+        <div style="grid-column: 1 / -1; text-align: center; padding: 60px 0; color: var(--text-muted);">
+          <i class="fa-solid fa-circle-notch fa-spin" style="font-size: 2rem; margin-bottom: 12px;"></i>
+          <p>Loading your whiteboard rooms...</p>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Create Room Modal -->
+  <div id="create-modal" class="modal-backdrop">
+    <div class="glass-panel modal-content">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h3 style="font-size: 1.3rem;">Create New Whiteboard</h3>
+        <button id="btn-close-modal" style="background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:1.2rem;">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <div id="modal-alert" class="alert alert-error"></div>
+
+      <form id="create-board-form">
+        <div class="form-group">
+          <label for="board-name">Board Name</label>
+          <input type="text" id="board-name" class="form-control" placeholder="e.g. Sprint Brainstorming, System Architecture" required>
+        </div>
+
+        <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px;">
+          <button type="button" id="btn-cancel-modal" class="btn btn-secondary">Cancel</button>
+          <button type="submit" class="btn btn-primary">Create Board</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="/js/auth.js"></script>
+  <script src="/js/dashboard.js"></script>
+</body>
+</html>

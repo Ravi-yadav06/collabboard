@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CollabBoard - Real-Time Collaborative Whiteboard with Video Calling</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+  <div class="landing-container">
+    <div class="glass-panel auth-card" style="max-width: 600px; text-align: center;">
+      <div class="logo-brand" style="justify-content: center; margin-bottom: 16px; font-size: 2.2rem;">
+        <i class="fa-solid fa-pen-ruler"></i> CollabBoard
+      </div>
+      <p style="color: var(--text-secondary); margin-bottom: 24px; font-size: 1.1rem;">
+        Empower your team with instant real-time canvas collaboration, live multi-peer WebRTC video calls, and interactive chat.
+      </p>
+
+      <div style="display: flex; gap: 16px; justify-content: center; margin-bottom: 32px;">
+        <a href="/login.html" class="btn btn-primary" id="btn-login-hero">
+          <i class="fa-solid fa-right-to-bracket"></i> Login
+        </a>
+        <a href="/register.html" class="btn btn-secondary" id="btn-register-hero">
+          <i class="fa-solid fa-user-plus"></i> Register
+        </a>
+        <a href="/dashboard.html" class="btn btn-secondary" id="btn-dash-hero" style="display:none;">
+          <i class="fa-solid fa-gauge-high"></i> Go to Dashboard
+        </a>
+      </div>
+
+      <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; text-align: left; margin-top: 24px; border-top: 1px solid var(--panel-border); padding-top: 24px;">
+        <div>
+          <h4 style="color: var(--accent-violet); font-size: 0.95rem; margin-bottom: 4px;">
+            <i class="fa-solid fa-palette"></i> Smart Canvas
+          </h4>
+          <p style="font-size: 0.8rem; color: var(--text-muted);">Pen, Eraser, Lines, Rectangles, Circles, Text, Undo/Redo & Save.</p>
+        </div>
+        <div>
+          <h4 style="color: var(--accent-cyan); font-size: 0.95rem; margin-bottom: 4px;">
+            <i class="fa-solid fa-bolt"></i> Real-Time Sync
+          </h4>
+          <p style="font-size: 0.8rem; color: var(--text-muted);">Instant stroke broadcasting & live remote cursor tracking via Socket.IO.</p>
+        </div>
+        <div>
+          <h4 style="color: var(--accent-pink); font-size: 0.95rem; margin-bottom: 4px;">
+            <i class="fa-solid fa-video"></i> WebRTC Calls
+          </h4>
+          <p style="font-size: 0.8rem; color: var(--text-muted);">Peer-to-peer audio & video calling directly inside your whiteboard room.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/js/auth.js"></script>
+  <script>
+    // Quick check if logged in
+    if (Auth.isLoggedIn()) {
+      document.getElementById('btn-login-hero').style.display = 'none';
+      document.getElementById('btn-register-hero').style.display = 'none';
+      document.getElementById('btn-dash-hero').style.display = 'inline-flex';
+    }
+  </script>
+</body>
+</html>

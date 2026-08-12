@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Whiteboard Workspace - CollabBoard</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Socket.IO client library -->
+  <script src="/socket.io/socket.io.js"></script>
+</head>
+<body>
+  <div class="board-app">
+    <!-- Top Navbar -->
+    <header class="board-navbar">
+      <div class="room-info">
+        <a href="/dashboard.html" class="btn btn-secondary btn-icon" title="Back to Dashboard">
+          <i class="fa-solid fa-arrow-left"></i>
+        </a>
+        <div>
+          <span id="board-title" class="room-title">Loading...</span>
+        </div>
+        <div id="room-id-pill" class="room-id-pill" title="Click to copy Room ID">
+          <i class="fa-solid fa-link"></i> <span id="room-id-text">...</span>
+        </div>
+      </div>
+
+      <div style="display: flex; gap: 10px; align-items: center;">
+        <button id="btn-save-board" class="btn btn-secondary" title="Save whiteboard drawing to database">
+          <i class="fa-solid fa-floppy-disk"></i> <span class="hide-mobile">Save</span>
+        </button>
+
+        <button id="btn-export-board" class="btn btn-secondary" title="Export canvas image">
+          <i class="fa-solid fa-download"></i> <span class="hide-mobile">Export</span>
+        </button>
+
+        <div class="toolbar-divider"></div>
+
+        <button id="btn-toggle-video" class="btn btn-primary" title="Toggle Video Calling">
+          <i class="fa-solid fa-video"></i> <span class="hide-mobile">Video</span>
+        </button>
+
+        <button id="btn-toggle-side-panel" class="btn btn-secondary btn-icon" title="Toggle Chat & Participants">
+          <i class="fa-solid fa-comments"></i>
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Workspace -->
+    <div class="board-workspace">
+      <!-- Floating Toolbar for Tools -->
+      <div class="glass-panel toolbar-floating">
+        <button id="tool-pen" class="tool-btn active" title="Pen Tool">
+          <i class="fa-solid fa-pencil"></i>
+        </button>
+        <button id="tool-eraser" class="tool-btn" title="Eraser Tool">
+          <i class="fa-solid fa-eraser"></i>
+        </button>
+
+        <div class="toolbar-divider"></div>
+
+        <button id="tool-line" class="tool-btn" title="Line Tool">
+          <i class="fa-solid fa-slash"></i>
+        </button>
+        <button id="tool-rect" class="tool-btn" title="Rectangle Tool">
+          <i class="fa-regular fa-square"></i>
+        </button>
+        <button id="tool-circle" class="tool-btn" title="Circle Tool">
+          <i class="fa-regular fa-circle"></i>
+        </button>
+        <button id="tool-text" class="tool-btn" title="Text Tool">
+          <i class="fa-solid fa-font"></i>
+        </button>
+
+        <div class="toolbar-divider"></div>
+
+        <div class="color-picker-wrapper" title="Color Picker">
+          <input type="color" id="picker-color" value="#8b5cf6">
+        </div>
+
+        <input type="range" id="picker-size" class="size-slider" min="1" max="40" value="4" title="Brush Size">
+
+        <div class="toolbar-divider"></div>
+
+        <button id="btn-undo" class="tool-btn" title="Undo">
+          <i class="fa-solid fa-rotate-left"></i>
+        </button>
+        <button id="btn-redo" class="tool-btn" title="Redo">
+          <i class="fa-solid fa-rotate-right"></i>
+        </button>
+        <button id="btn-clear-canvas" class="tool-btn" title="Clear Canvas" style="color: #f87171;">
+          <i class="fa-solid fa-trash-can"></i>
+        </button>
+      </div>
+
+      <!-- Canvas Area -->
+      <div id="canvas-container" class="canvas-container">
+        <canvas id="whiteboard"></canvas>
+        <div id="cursors-layer" class="cursors-layer"></div>
+      </div>
+
+      <!-- WebRTC Floating Video Streams Grid -->
+      <div id="video-overlay-grid" class="video-overlay-grid" style="display: none;">
+        <!-- Local User Video Tile -->
+        <div class="video-tile" id="local-video-tile">
+          <video id="local-video" autoplay playsinline muted></video>
+          <div class="video-tile-name">You (Local)</div>
+          <div class="video-tile-status">
+            <span id="local-mic-icon" class="status-icon"><i class="fa-solid fa-microphone"></i></span>
+            <span id="local-cam-icon" class="status-icon"><i class="fa-solid fa-video"></i></span>
+          </div>
+        </div>
+        <!-- Remote Video Tiles dynamically added here -->
+      </div>
+
+      <!-- WebRTC Floating Call Controls Bar -->
+      <div id="video-controls-bar" class="glass-panel video-controls-bar" style="display: none;">
+        <button id="btn-toggle-mic" class="btn btn-secondary btn-icon" title="Mute/Unmute Mic">
+          <i class="fa-solid fa-microphone"></i>
+        </button>
+        <button id="btn-toggle-cam" class="btn btn-secondary btn-icon" title="Turn On/Off Camera">
+          <i class="fa-solid fa-video"></i>
+        </button>
+        <button id="btn-leave-call" class="btn btn-danger btn-icon" title="Leave Video Call">
+          <i class="fa-solid fa-phone-slash"></i>
+        </button>
+      </div>
+
+      <!-- Side Panel (Participants & Chat) -->
+      <aside id="side-panel" class="side-panel">
+        <div class="panel-tabs">
+          <button id="tab-btn-chat" class="panel-tab active">
+            <i class="fa-solid fa-message"></i> Chat
+          </button>
+          <button id="tab-btn-users" class="panel-tab">
+            <i class="fa-solid fa-users"></i> Users (<span id="user-count">1</span>)
+          </button>
+        </div>
+
+        <div class="panel-content">
+          <!-- Chat Pane -->
+          <div id="pane-chat" class="tab-pane active">
+            <div id="chat-messages" class="chat-messages">
+              <!-- Dynamically populated chat messages -->
+            </div>
+            <form id="chat-form" class="chat-input-area">
+              <input type="text" id="chat-input" class="form-control" placeholder="Type a message..." required autocomplete="off">
+              <button type="submit" class="btn btn-primary btn-icon">
+                <i class="fa-solid fa-paper-plane"></i>
+              </button>
+            </form>
+          </div>
+
+          <!-- Participants Pane -->
+          <div id="pane-users" class="tab-pane">
+            <div id="participants-list" class="participants-list">
+              <!-- Dynamically populated user list -->
+            </div>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </div>
+
+  <!-- Client Script Modules -->
+  <script src="/js/auth.js"></script>
+  <script src="/js/canvas.js"></script>
+  <script src="/js/socket-client.js"></script>
+  <script src="/js/webrtc.js"></script>
+  <script src="/js/chat.js"></script>
+  <script>
+    // Initialize full Board workspace application
+    document.addEventListener('DOMContentLoaded', async () => {
+      if (!Auth.isLoggedIn()) {
+        window.location.href = '/login.html';
+        return;
+      }
+
+      const urlParams = new URLSearchParams(window.location.search);
+      const roomId = urlParams.get('id');
+
+      if (!roomId) {
+        alert('No Room ID provided.');
+        window.location.href = '/dashboard.html';
+        return;
+      }
+
+      try {
+        // Fetch board info from API
+        const data = await Auth.fetchWithAuth(`/api/boards/${roomId}`);
+        const board = data.board;
+        const currentUser = Auth.getUser();
+
+        document.getElementById('board-title').textContent = board.name;
+        document.getElementById('room-id-text').textContent = board.roomId;
+
+        // Copy Room ID on click
+        document.getElementById('room-id-pill').addEventListener('click', () => {
+          navigator.clipboard.writeText(board.roomId);
+          alert(`Room ID ${board.roomId} copied to clipboard!`);
+        });
+
+        // Initialize Canvas Engine
+        CanvasEngine.init('whiteboard', 'canvas-container', board.drawData || []);
+
+        // Initialize Socket.IO Real-Time Connection
+        SocketClient.init(roomId, currentUser);
+
+        // Initialize Chat Controller
+        ChatController.init(board.chatMessages || []);
+
+        // Initialize WebRTC Video Call Manager
+        WebRTCManager.init(roomId, currentUser);
+
+        // Side Panel Tabs Toggle
+        const tabChat = document.getElementById('tab-btn-chat');
+        const tabUsers = document.getElementById('tab-btn-users');
+        const paneChat = document.getElementById('pane-chat');
+        const paneUsers = document.getElementById('pane-users');
+
+        tabChat.addEventListener('click', () => {
+          tabChat.classList.add('active');
+          tabUsers.classList.remove('active');
+          paneChat.classList.add('active');
+          paneUsers.classList.remove('active');
+        });
+
+        tabUsers.addEventListener('click', () => {
+          tabUsers.classList.add('active');
+          tabChat.classList.remove('active');
+          paneUsers.classList.add('active');
+          paneChat.classList.remove('active');
+        });
+
+        // Side panel toggle
+        const sidePanel = document.getElementById('side-panel');
+        document.getElementById('btn-toggle-side-panel').addEventListener('click', () => {
+          sidePanel.classList.toggle('collapsed');
+        });
+
+        // Save Board state button
+        document.getElementById('btn-save-board').addEventListener('click', async () => {
+          const drawData = CanvasEngine.getDrawData();
+          try {
+            await Auth.fetchWithAuth(`/api/boards/${roomId}/save`, {
+              method: 'PUT',
+              body: JSON.stringify({ drawData })
+            });
+            alert('Board state saved successfully!');
+          } catch (err) {
+            alert('Failed to save board state.');
+          }
+        });
+
+        // Export Canvas button
+        document.getElementById('btn-export-board').addEventListener('click', () => {
+          CanvasEngine.exportImage();
+        });
+
+      } catch (err) {
+        console.error('Error joining board room:', err);
+        alert(err.message || 'Error joining room.');
+        window.location.href = '/dashboard.html';
+      }
+    });
+  </script>
+</body>
+</html>
