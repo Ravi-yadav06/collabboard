@@ -79,7 +79,7 @@ A default `.env` file is included in the root directory:
 ```env
 PORT=5000
 MONGODB_URI=mongodb://localhost:27017/collabboard
-JWT_SECRET=collabboard_super_secret_jwt_key_2026_antigravity
+JWT_SECRET=your_jwt_secret_here
 ```
 
 ### 3. Start Application
